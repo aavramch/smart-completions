@@ -156,4 +156,4 @@ local function register(executable, ...)
     end)
 end
 
-register('smartwsl', 'wsl.exe')
+register('smartwsl', 'smartwsl.exe')
