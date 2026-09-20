@@ -24,13 +24,22 @@ local function trim(s)
 end
 
 local function capture_lines(command)
-    local pipe = io.popen(command .. ' 2>NUL')
+    local pipe = io.popen(command .. ' 2>NUL', 'rb')
     if not pipe then return nil end
-    local lines = {}
-    for line in pipe:lines() do
-        lines[#lines + 1] = normalise_line(line)
-    end
+
+    -- Do not use pipe:lines() here.  Clink's Lua file iterator treats the NUL
+    -- bytes in redirected UTF-16LE output as string terminators, reducing the
+    -- first line of `wsl.exe --help` to just "C".  Reading the binary stream
+    -- in one operation preserves the bytes so they can be normalized first.
+    local output = pipe:read('*a')
     pipe:close()
+    if not output then return nil end
+
+    output = normalise_line(output)
+    local lines = {}
+    for line in (output .. '\n'):gmatch('(.-)\n') do
+        lines[#lines + 1] = line:gsub('\r$', '')
+    end
     return lines
 end
 
@@ -120,7 +129,7 @@ local function value_parser(matches, hint)
     return clink.argmatcher():addarg({ matches, hint = hint }):nofiles()
 end
 
-local function register(executable)
+local function register(executable, ...)
     local help
     local distributions = ttl_cached(function() return distro_names(executable) end)
     local parsers = {
@@ -131,7 +140,7 @@ local function register(executable)
         file = clink.argmatcher():addarg(clink.filematches),
     }
 
-    clink.argmatcher(executable):setdelayinit(function(m)
+    clink.argmatcher(executable, ...):setdelayinit(function(m)
         help = help or parse_help(capture_lines(executable .. ' --help') or {})
         local flags = {}
         for _, flag in ipairs(help.flags) do
@@ -147,5 +156,4 @@ local function register(executable)
     end)
 end
 
-register('wsl')
-register('wsl.exe')
+register('wsl', 'wsl.exe')

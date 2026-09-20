@@ -15,7 +15,9 @@ Extending [Clink](https://github.com/chrisant996/clink) with completions that ~~
 1. Clone this repo to a folder of your choice `<DIR>` (for example,
    `%LOCALAPPDATA%\clink\smart-completions`) and run
    `clink installscripts <DIR>`. Alternatively, copy individual `.lua` files
-   to `%CLINK_PROFILE%\scripts`.
-2. Restart the shell
+   to the profile directory reported by `clink info`, or to its
+   `completions` subdirectory for on-demand loading.
+2. Restart the shell (or use Clink's `clink-reload` binding, `Ctrl-X Ctrl-R`
+   by default).
 
 **_Clink_** truly revolutionized the outdated Windows command shell. Please support the project at [https://github.com/chrisant996/clink](https://github.com/chrisant996/clink)✨
