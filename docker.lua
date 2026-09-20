@@ -40,6 +40,9 @@ if not clink or not clink.argmatcher then return end
 
 -- The command we invoke for both completion-discovery and for live data.
 local DOCKER   = 'docker'
+-- Clink releases have embedded different Lua versions. Lua 5.1 exposes
+-- unpack() globally, while newer versions expose table.unpack().
+local unpack_args = table.unpack or unpack
 -- TTL for the live caches (containers, images, ...). Help text is parsed
 -- once per session per subcommand path.
 local LIVE_TTL = 4
@@ -338,7 +341,7 @@ build_parser = function(path)
         local h = help_for(path)
 
         if #h.flags > 0 then
-            m:addflags(table.unpack(apply_flag_completers(h.flags)))
+            m:addflags(unpack_args(apply_flag_completers(h.flags)))
             m:hideflags('-h', '--help')   -- accept them, but hide from default tab
             if next(h.flag_desc) then
                 m:adddescriptions(h.flag_desc)
@@ -391,7 +394,7 @@ local function register(name)
         local h = help_for(name)
 
         if #h.flags > 0 then
-            m:addflags(table.unpack(apply_flag_completers(h.flags)))
+            m:addflags(unpack_args(apply_flag_completers(h.flags)))
             m:hideflags('-h', '--help')
             if next(h.flag_desc) then
                 m:adddescriptions(h.flag_desc)
